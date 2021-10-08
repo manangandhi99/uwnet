@@ -84,6 +84,34 @@ void test_axpy_matrix()
     free_matrix(y1);
 }
 
+void test_easy_matmul() {
+    matrix a = make_matrix(2, 3);
+    matrix b = make_matrix(3, 2);
+    a.data[0] = 1;
+    a.data[1] = 2;
+    a.data[2] = 3;
+    a.data[3] = 4;
+    a.data[4] = 5;
+    a.data[5] = 6;
+    b.data[0] = 7;
+    b.data[1] = 8;
+    b.data[2] = 9;
+    b.data[3] = 10;
+    b.data[4] = 11;
+    b.data[5] = 12;
+    matrix c = make_matrix(2, 2);
+    c.data[0] = 58;
+    c.data[1] = 64;
+    c.data[2] = 139;
+    c.data[3] = 154;
+    matrix mul = matmul(a, b);
+    TEST(same_matrix(c, mul));
+    free_matrix(a);
+    free_matrix(b);
+    free_matrix(c);
+    free_matrix(mul);
+}
+
 void test_matmul()
 {
     matrix a = load_matrix("data/test/a.matrix");
@@ -593,6 +621,7 @@ void run_tests()
     test_copy_matrix();
     test_axpy_matrix();
     test_transpose_matrix();
+    test_easy_matmul();
     test_matmul();
     test_activation_layer();
     test_connected_layer();
