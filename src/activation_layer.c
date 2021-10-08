@@ -24,7 +24,41 @@ matrix forward_activation_layer(layer l, matrix x)
     // relu(x)     = x if x > 0 else 0
     // lrelu(x)    = x if x > 0 else .01 * x
     // softmax(x)  = e^{x_i} / sum(e^{x_j}) for all x_j in the same row 
-
+    if (a == LOGISTIC || a == RELU || a == LRELU) {
+        for (int i = 0; i < x.rows; ++i) {
+            for (int j = 0; j < x.cols; ++j) {
+                if (a == LOGISTIC) {
+                    y.data[i * x.cols + j] = 1.0/(1.0 + exp(-x.data[i * x.cols + j]));
+                } else if (a == RELU) {
+                    float temp = x.data[i * x.cols + j];
+                    if (temp > 0) {
+                        y.data[i * x.cols + j] = temp;
+                    } else {
+                        y.data[i * x.cols + j] = 0;
+                    }
+                } else { // a == LRELU
+                    float temp = x.data[i * x.cols + j];
+                    if (temp > 0) {
+                        y.data[i * x.cols + j] = temp;
+                    } else {
+                        y.data[i * x.cols + j] = 0.01 * temp;
+                    }
+                }
+            }
+        }       
+    } else  {  // a == SOFTMAX
+        float* rowSums = (float*) calloc(x.cols, sizeof(float));
+        for (int i = 0; i < x.rows; ++i) {
+            for (int j = 0; j < x.cols; ++j) {
+                rowSums[i] += exp(x.data[i*x.cols + j]);
+            }
+        }
+        for (int i = 0; i < x.rows; ++i) {
+            for (int j = 0; j < x.cols; ++ j) {
+                y.data[i*x.cols + j] = exp(x.data[i*x.cols + j]) / rowSums[i];
+            }
+        }
+    }
     return y;
 }
 
@@ -47,6 +81,29 @@ matrix backward_activation_layer(layer l, matrix dy)
     // d/dx relu(x)     = 1 if x > 0 else 0
     // d/dx lrelu(x)    = 1 if x > 0 else 0.01
     // d/dx softmax(x)  = 1
+
+    for (int i = 0; i < x.rows; ++i) {
+        for (int j = 0; j < x.cols; ++j) {
+            float temp_dx = 0;
+            if (a == LOGISTIC) {
+                float x_ij = x.data[i*x.cols + j];
+                temp_dx = x_ij * (1.0 - x_ij);
+            } else if (a == RELU) {
+                if (x.data[i*x.cols + j] > 0) {
+                    temp_dx = 1;
+                }
+            } else if (a == LRELU) {
+                if (x.data[i*x.cols + j] > 0) {
+                    temp_dx = 1;
+                } else {
+                    temp_dx = 0.01;
+                }
+            } else { // a == SOFTMAX
+                temp_dx = 1;
+            }
+            dx.data[i*x.cols + j] = dy.data[i*x.cols + j] * temp_dx;
+        }
+    }
 
     return dx;
 }
