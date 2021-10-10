@@ -84,10 +84,10 @@ matrix backward_activation_layer(layer l, matrix dy)
 
     for (int i = 0; i < x.rows; ++i) {
         for (int j = 0; j < x.cols; ++j) {
-            float temp_dx = 0;
+            float temp_dx = 0.0;
             if (a == LOGISTIC) {
-                float x_ij = x.data[i*x.cols + j];
-                temp_dx = x_ij * (1.0 - x_ij);
+                float f_x_ij = 1.0/(1.0 + exp(-x.data[i * x.cols + j]));
+                temp_dx = f_x_ij * (1.0 - f_x_ij);
             } else if (a == RELU) {
                 if (x.data[i*x.cols + j] > 0) {
                     temp_dx = 1;
