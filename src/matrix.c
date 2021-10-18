@@ -91,12 +91,10 @@ void axpy_matrix(float a, matrix x, matrix y)
     assert(x.rows == y.rows);
 
     int i, j;
-    float temp;
 
     for(i = 0; i < x.rows; i++){
         for(j = 0; j < x.cols; j++){
-            temp = x.data[i*x.cols + j] * a;
-            y.data[i*x.cols + j] += temp;
+            y.data[i*x.cols + j] += x.data[i*x.cols + j] * a;
         }
     }
 }
