@@ -52,6 +52,7 @@ matrix forward_connected_layer(layer l, matrix x)
     //matrix y = make_matrix(x.rows, l.w.cols); // Going to want to change this!
     matrix xw = matmul(x, l.w);
     matrix y = forward_bias(xw, l.b);
+    free_matrix(xw);
     return y;
 }
 
@@ -68,13 +69,16 @@ matrix backward_connected_layer(layer l, matrix dy)
     // add this into any stored gradient info already in l.db
     matrix db = backward_bias(dy);
     axpy_matrix(1.0, db, l.db);
-
+    
     // Then calculate dL/dw. Use axpy to add this dL/dw into any previously stored
     // updates for our weights, which are stored in l.dw
     matrix dw = matmul(transpose_matrix(x), dy);
     axpy_matrix(1.0, dw, l.dw);
+    
     // Calculate dL/dx and return it
     matrix dx = matmul(dy, transpose_matrix(l.w)); // Change this
+    free_matrix(db);
+    free_matrix(dw);
     return dx;
 }
 
