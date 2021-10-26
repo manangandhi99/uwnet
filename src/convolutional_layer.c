@@ -41,6 +41,15 @@ matrix backward_convolutional_bias(matrix dy, int n)
     return db;
 }
 
+float get_cij(image im, int c, int i, int j) {
+    assert(c <= im.c);
+    int img_ind = i + im.w*(j + im.h*c);
+    if (i < 0 || j < 0 || i >= im.h || i >=im.w) {
+        return 0;
+    }
+    return im.data[img_ind];
+}
+
 // Make a column matrix out of an image
 // image im: image to process
 // int size: kernel size for convolution operation
@@ -48,19 +57,37 @@ matrix backward_convolutional_bias(matrix dy, int n)
 // returns: column matrix
 matrix im2col(image im, int size, int stride)
 {
-    int i, j, k;
     int outw = (im.w-1)/stride + 1;
     int outh = (im.h-1)/stride + 1;
     int rows = im.c*size*size;
     int cols = outw * outh;
-    matrix col = make_matrix(rows, cols);
-
+    matrix res = make_matrix(rows, cols);
+    printf("Stride: %d, %d, %d\n", stride, rows, cols);
     // TODO: 5.1
     // Fill in the column matrix with patches from the image
-
-
-
-    return col;
+    for (int c = 0; c < im.c; c++) {
+        int col_count = 0;
+        for (int row = 0; row < im.h; row+=stride) {
+            for (int col = 0; col < im.w; col+=stride) {
+                int remainder = size%2;
+                int kernel_diff = size/2;
+                for (int i = row - kernel_diff; i < row + kernel_diff + remainder; i++) {
+                    for (int j = col - kernel_diff; j < col + kernel_diff + remainder; j++) {
+                        float val = get_cij(im, c, i, j);
+                        int dest_row = c*size*size + (i - row + kernel_diff)*size + (j - col + kernel_diff);
+                        //printf("%d, %d, %d, %d, %d\n", i - row + kernel_diff, j - col + kernel_diff, (i - row + kernel_diff)*size + (j - col + kernel_diff),dest_row, size);
+                        int dest_col = col_count;
+                        if (dest_col == 33) {
+                            printf("%d, %d: %d, %d, %d, %d: %f: %d\n", i, j, row, col, dest_row, dest_col, val, kernel_diff);
+                        }
+                        res.data[dest_row * cols + col/stride] = val;
+                    }
+                }
+                col_count += 1;
+            }
+        }
+    }
+    return res;
 }
 
 // The reverse of im2col, add elements back into image
