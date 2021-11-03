@@ -50,6 +50,13 @@ float get_cij(image im, int c, int i, int j) {
     return im.data[img_ind];
 }
 
+void set_cij(image im, int c, int i, int j, float val) {
+    int img_ind = j + im.w*(i + im.h*c);
+    if (!(i < 0 || j < 0 || i >= im.h || i >=im.w)) {
+        im.data[img_ind] = val; 
+    }
+}
+
 // Make a column matrix out of an image
 // image im: image to process
 // int size: kernel size for convolution operation
@@ -96,19 +103,42 @@ matrix im2col(image im, int size, int stride)
 // int size: kernel size
 // int stride: convolution stride
 // image im: image to add elements back into
-image col2im(int width, int height, int channels, matrix col, int size, int stride)
+image col2im(int width, int height, int channels, matrix colMatr, int size, int stride)
 {
-    int i, j, k;
 
     image im = make_image(width, height, channels);
     int outw = (im.w-1)/stride + 1;
-    int rows = im.c*size*size;
+    int outh = (im.h-1)/stride + 1;
+    int cols = outw * outh;
 
     // TODO: 5.2
     // Add values into image im from the column matrix
-    
 
+    for (int c = 0; c < channels; c++) {
+        int col_count = 0;
+        for (int row = 0; row < im.h; row+=stride) {
+            for (int col = 0; col < im.w; col+=stride) {
+                int evenOffset;
+                if (size%2 == 0) {
+                    evenOffset = 1;
+                } else {
+                    evenOffset = 0;
+                }
+                int kernel_diff = size/2;
 
+                for (int i = row - kernel_diff + evenOffset; i < row + kernel_diff + 1; i++) {
+                    for (int j = col - kernel_diff + evenOffset; j < col + kernel_diff + 1; j++) {
+                        float prevVal = get_cij(im, c, i, j);
+                        int dest_row = c*size*size + (i - row + kernel_diff - evenOffset)*size + (j - col + kernel_diff - evenOffset);
+                        int dest_col = col_count;
+                        float currVal = colMatr.data[dest_row * cols + dest_col];
+                        set_cij(im, c, i, j, prevVal + currVal);
+                    }
+                }
+                col_count += 1;
+            }
+        }
+    }
     return im;
 }
 
