@@ -44,16 +44,16 @@ matrix backward_convolutional_bias(matrix dy, int n)
 float get_cij(image im, int c, int i, int j) {
     assert(c <= im.c);
     int img_ind = j + im.w*(i + im.h*c);
-    if (i < 0 || j < 0 || i >= im.h || i >=im.w) {
-        return 0;
+    if (i >= 0 && j >= 0 && i < im.h && j < im.w) {
+        return im.data[img_ind];
     }
-    return im.data[img_ind];
+    return 0.0;
 }
 
 void set_cij(image im, int c, int i, int j, float val) {
     int img_ind = j + im.w*(i + im.h*c);
-    if (!(i < 0 || j < 0 || i >= im.h || i >=im.w)) {
-        im.data[img_ind] = val; 
+    if (i >= 0 && j >= 0 && i < im.h && j < im.w) {
+        im.data[img_ind] = val;
     }
 }
 
@@ -97,7 +97,6 @@ matrix im2col(image im, int size, int stride)
     }
     return res;
 }
-
 // The reverse of im2col, add elements back into image
 // matrix col: column matrix to put back into image
 // int size: kernel size
